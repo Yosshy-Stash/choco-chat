@@ -2383,13 +2383,47 @@
       document.body.className = 'theme-default';
     });
 
+    const typingUsers = [];
+
     socket.on('userTyping', ({ username }) => {
-      typingIndicator.textContent = `${username} が入力中...`;
+      if (!typingUsers.includes(username)) {
+        typingUsers.push(username);
+      }
+
+      let typingText = '';
+      if (typingUsers.length === 1) {
+        typingText = `${typingUsers[0]} が入力中...`;
+      } else if (typingUsers.length === 2) {
+        typingText = `${typingUsers[0]} と ${typingUsers[1]} が入力中...`;
+      } else {
+        typingText = `${typingUsers[0]} と ${typingUsers[1]} など ${typingUsers.length} 人が入力中...`;
+      }
+
+      typingIndicator.textContent = typingText;
       typingIndicator.classList.remove('hidden');
     });
 
-    socket.on('userStoppedTyping', () => {
-      typingIndicator.classList.add('hidden');
+    // ユーザーが入力を終えた時
+    socket.on('userStoppedTyping', ({ username }) => {
+      const index = typingUsers.indexOf(username);
+      if (index !== -1) {
+        typingUsers.splice(index, 1);
+      }
+
+      // typingUsersが空になったらhiddenを追加
+      if (typingUsers.length === 0) {
+        typingIndicator.classList.add('hidden');
+      } else {
+    let typingText = '';
+        if (typingUsers.length === 1) {
+          typingText = `${typingUsers[0]} が入力中...`;
+        } else if (typingUsers.length === 2) {
+          typingText = `${typingUsers[0]} と ${typingUsers[1]} が入力中...`;
+        } else {
+          typingText = `${typingUsers[0]} と ${typingUsers[1]} など ${typingUsers.length} 人が入力中...`;
+        }
+        typingIndicator.textContent = typingText;
+      }
     });
 
     socket.on('profileUpdated', (data) => {
